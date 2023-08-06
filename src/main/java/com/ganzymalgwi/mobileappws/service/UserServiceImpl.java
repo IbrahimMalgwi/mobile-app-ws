@@ -7,16 +7,18 @@ import com.ganzymalgwi.mobileappws.utils.Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService{
-    @Autowired
-    private UserRepository userRepository;
 
-    @Autowired
-    Utils utils;
+    private UserRepository userRepository;
+    private Utils utils;
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
     public UserDto createUser(UserDto user) {
@@ -28,7 +30,7 @@ public class UserServiceImpl implements UserService{
         BeanUtils.copyProperties(user, userEntity);
 
         String publicUserId = utils.generateUserId(30);
-        userEntity.setEncryptedPassword("testUserId");
+        userEntity.setEncryptedPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         userEntity.setUserId(publicUserId);
 
         UserEntity storedUserValue = userRepository.save(userEntity);
@@ -36,5 +38,10 @@ public class UserServiceImpl implements UserService{
         UserDto returnValue = new UserDto();
         BeanUtils.copyProperties(storedUserValue, returnValue);
         return returnValue;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return null;
     }
 }
